@@ -1,0 +1,13 @@
+[package]
+name = "seal"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ab_glyph = "0.2.29"
+anyhow = "1.0.89"
+clap = { version = "4.5.20", features = ["derive"] }
+clap-stdin = "0.5.1"
+image = { version = "0.25.2", default-features = false, features = ["png"] }
+imageproc = { version = "0.25.0", default-features = false }
+qrcode = "0.14.1"
