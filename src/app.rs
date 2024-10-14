@@ -1,11 +1,11 @@
 use crate::args::Args;
 use ab_glyph::{FontRef, PxScale};
 use anyhow::{bail, Context, Result};
-use image::{EncodableLayout, ImageBuffer, Rgb};
+use image::{codecs::png::PngEncoder, ImageBuffer, ImageEncoder, Rgb};
 use imageproc::drawing;
 use qrcode::QrCode;
 use std::{
-    io::Write,
+    io::{BufRead, BufWriter, IsTerminal, Write},
     path::Path,
     process::{Command, Stdio},
 };
@@ -29,11 +29,43 @@ impl App {
 
         // Step 4: Write the result to file/stdout
         match args.output {
-            path if path == Path::new("-") => std::io::stdout().write_all(image.as_bytes())?,
+            path if path == Path::new("-") => {
+                let stdout = BufWriter::new(std::io::stdout());
+                let encoder = PngEncoder::new(stdout);
+                encoder.write_image(
+                    &image,
+                    image.width(),
+                    image.height(),
+                    image::ExtendedColorType::Rgb8,
+                )?
+            }
             path => image.save(path)?,
         }
 
         Ok(())
+    }
+
+    fn get_input(args: &Args) -> Result<String> {
+        let stdin = std::io::stdin();
+
+        if args.input.is_stdin() && stdin.is_terminal() {
+            eprintln!("Please enter the message you want to encrypt (end with an empty line):",);
+            stdin
+                .lock()
+                .lines()
+                .take_while(|x| match x {
+                    Ok(line) => !line.is_empty(),
+                    Err(_) => true, // Error is handled later
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map(|lines| lines.join("\n"))
+                .context("Could not read stdin")
+        } else {
+            args.input
+                .clone()
+                .contents()
+                .with_context(|| format!("Could not read seal input: {}", args.input.filename()))
+        }
     }
 
     fn age(args: &Args) -> Result<String> {
@@ -54,11 +86,7 @@ impl App {
             .stderr(Stdio::piped())
             .spawn()?;
 
-        let content = args
-            .input
-            .clone()
-            .contents()
-            .with_context(|| format!("Could not read seal input: {}", args.input.filename()))?;
+        let content = App::get_input(&args)?;
 
         proc.stdin
             .take()

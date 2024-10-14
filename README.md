@@ -6,11 +6,11 @@ and generate corresponding QR codes.
 ```bash
 $ seal --help
 
-Usage: seal [OPTIONS] <OUTPUT> [INPUT]
+Usage: seal [OPTIONS] <INPUT> <OUTPUT>
 
 Arguments:
+  <INPUT>   Path to a file to read from. Pass - for stdin
   <OUTPUT>  Write the result QR code to file at path OUTPUT. Pass - for stdout
-  [INPUT]   Path to a file to read from. Defaults to stdin [default: -]
 
 Options:
   -l, --label <LABEL>
@@ -30,15 +30,18 @@ Options:
   -V, --version
           Print version
 
-# Generate QR code with label
-$ seal -R ./recipients --label "hello secret" hello.png hello.txt
+# Generate QR code with label f from hello.txt
+$ seal -R ./recipients --label "hello secret" hello.txt hello.png
 
 # Write the armored .age file as well
-$ seal -R ./recipients -a hello.age hello.png hello.txt
+$ seal -R ./recipients -a hello.age hello.txt hello.png
 
 # Read input from stdin
-$ echo "Hello Age!" | seal -R ./recipients hello.png
+$ echo "Hello Age!" | seal -R ./recipients - hello.png
+
+# Read input from stdin (interactive)
+$ seal -R ./recipients - hello.png
 
 # Pipe the output qr code (e.g. for printing)
-$ seal -R ./recipients - hello.txt | lp
+$ seal -R ./recipients hello.txt - | lp
 ```

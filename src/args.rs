@@ -41,12 +41,9 @@ pub struct Args {
     #[arg(long, default_value = "rage", help = "Overwrite the age binary path.")]
     pub age_bin: String,
 
+    #[arg(help = "Path to a file to read from. Pass - for stdin")]
+    pub input: FileOrStdin,
+
     #[arg(help = "Write the result QR code to file at path OUTPUT. Pass - for stdout")]
     pub output: PathBuf,
-
-    #[arg(
-        default_value = "-",
-        help = "Path to a file to read from. Defaults to stdin"
-    )]
-    pub input: FileOrStdin,
 }
